@@ -33,7 +33,7 @@ def main(args, outs):
     args.coerce_strings()
     tmp_bam = martian.make_path(str(args.cluster_id) + '.unsorted.bam')
     tk_bam.concatenate(tmp_bam, args.cluster_bams)
-    outs.merged_bam = '{}.bam'.format(args.cluster_id)
+    outs.merged_bam = martian.make_path('{}.bam'.format(args.cluster_id))
     subprocess.check_call(['sambamba', 'sort', '-t', str(args.__threads), '-o', outs.merged_bam, tmp_bam])
     os.remove(tmp_bam)
 
