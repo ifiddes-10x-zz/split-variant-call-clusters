@@ -82,14 +82,14 @@ def join(args, outs, chunk_defs, chunk_outs):
     # mapping of cluster ID -> VCFs
     to_merge = collections.defaultdict(list)
     for o, d in zip(chunk_outs, chunk_defs):
-        to_merge[d.cluster].append(o.variant_subset)
+        to_merge[d.cluster_id].append(o.variant_subset)
 
     # merge each VCF subset for a cluster
     merged_vcfs = []
     for cluster_id, vcf_list in to_merge.iteritems():
-        merged_vcf = martian.make_path('{}.vcf.gz'.format(cluster_id))
-        tk_io.combine_vcfs(vcf_list, merged_vcf)
-        merged_vcfs.append(merged_vcf)
+        merged_vcf = martian.make_path('{}.vcf'.format(cluster_id))
+        tk_io.combine_vcfs(merged_vcf, vcf_list)
+        merged_vcfs.append(merged_vcf + '.gz')
 
     # final merge to make one combined VCF
     tmp = martian.make_path('tmp.vcf')
@@ -97,5 +97,7 @@ def join(args, outs, chunk_defs, chunk_outs):
     with open(tmp, 'w') as outf:
         subprocess.check_call(cmd, stdout=outf)
     # Sort and index the files
+    outs.variants = 'variants.vcf.gz'
     tk_tabix.sort_vcf(tmp, outs.variants)
     tk_tabix.index_vcf(outs.variants)
+    os.remove(tmp)
