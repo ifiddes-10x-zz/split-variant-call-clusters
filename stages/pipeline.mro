@@ -1,0 +1,34 @@
+@include "stages.mro"
+filetype csv;
+filetype bam;
+filetype vcf;
+filetype bed;
+
+pipeline VARIANT_CALL_CB_CLUSTERS(
+    in bam possorted_bam,
+    in csv barcode_clusters,
+    in string reference_path,
+    out vcf variants,
+)
+{
+    call FILTER_BAM(
+        possorted_bam = self.possorted_bam,
+        barcode_clusters = self.barcode_clusters,
+    )
+    call MODIFY_BAM(
+        filtered_bams = FILTER_BAM.filtered_bams,
+        reference_path = self.reference_path,
+    )
+    call MERGE_BAMS(
+        modified_filtered_bams = MODIFY_BAM.modified_filtered_bams,
+        clusters = FILTER_BAM.clusters,
+    )
+    call CALL_VARIANTS(
+        merged_bams = MERGE_BAMS.merged_bams,
+        merged_clusters = MERGE_BAMS.merged_clusters,
+        reference_path = self.reference_path,
+    )
+    return (
+        variants = CALL_VARIANTS.variants,
+    )
+}

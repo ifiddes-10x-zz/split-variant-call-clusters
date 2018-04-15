@@ -1,0 +1,49 @@
+filetype bam;
+filetype csv;
+filetype vcf;
+
+stage FILTER_BAM(
+    in bam possorted_bam,
+    in csv barcode_clusters,
+    out bam[] filtered_bams,
+    out int[] clusters,
+    src py "filter_bam",
+) split using(
+    in string chunk_start,
+    in string chunk_end,
+    in string[] barcodes,
+    out bam filtered_bam,
+)
+
+stage MODIFY_BAM(
+    in bam[] filtered_bams,
+    in path reference_path,
+    out bam[] modified_filtered_bams,
+    src py "modify_bam",
+) split using(
+    in bam filtered_bam,
+    out bam modified_filtered_bam,
+)
+
+stage MERGE_BAMS(
+    in bam[] modified_filtered_bams,
+    in int[] clusters,
+    out bam[] merged_bams,
+    out int[] merged_clusters,
+    src py "merge_bams",
+) split using(
+    in bam filtered_bam,
+    out bam merged_bam,
+)
+
+stage CALL_VARIANTS(
+    in bam[] merged_bams,
+    in int[] merged_clusters,
+    in path reference_path,
+    out vcf variants,
+    src py "call_variants",
+) split using (
+    in string locus,
+    in bam merged_bam,
+    out vcf variant_subset,
+)
