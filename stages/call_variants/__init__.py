@@ -53,7 +53,6 @@ def main(args, outs):
     tk_tabix.sort_vcf(tmp, outs.variant_subset.replace('.gz', ''))
     tk_tabix.index_vcf(outs.variant_subset.replace('.gz', ''))
     os.remove(tmp)
-    os.remove(tmp + '.idx')
 
 
 def join(args, outs, chunk_defs, chunk_outs):
