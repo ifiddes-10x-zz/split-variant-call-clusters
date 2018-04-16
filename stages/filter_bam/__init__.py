@@ -22,7 +22,6 @@ stage FILTER_BAM(
 ) split using(
     in string chunk_start,
     in string chunk_end,
-    in int cluster_id,
     in string[] barcodes,
     out bam filtered_bam,
 )
@@ -45,6 +44,7 @@ def split(args):
                               '__mem_gb': 8})
     return {'chunks': bc_chunks}
 
+
 def main(args, outs):
     outs.coerce_strings()
 
@@ -66,6 +66,7 @@ def main(args, outs):
 
                 dupe_keys.add(dupe_key)
                 out_bam.write(read)
+
 
 def join(args, outs, chunk_defs, chunk_outs):
     outs.coerce_strings()

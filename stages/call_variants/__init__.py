@@ -43,7 +43,7 @@ def split(args):
     for bam, cluster_id in zip(args.merged_bams, args.merged_clusters):
         for locus in loci:
             chunks.append({'locus': locus, 'merged_bam': bam, 'cluster_id': cluster_id,
-                           '__mem_gb': 16, '__threads': 2})
+                           '__mem_gb': 80, '__threads': 8})
     return {'chunks': chunks, 'join': {'__mem_gb': 16}}
 
 

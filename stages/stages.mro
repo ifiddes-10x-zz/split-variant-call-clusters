@@ -8,11 +8,13 @@ stage FILTER_BAM(
     out bam[] filtered_bams,
     out int[] clusters,
     src py "filter_bam",
-) split using(
+) split(
     in string chunk_start,
     in string chunk_end,
     in string[] barcodes,
     out bam filtered_bam,
+) using (
+    mem_gb = 8,
 )
 
 stage MODIFY_BAM(
