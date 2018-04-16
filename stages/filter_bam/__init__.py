@@ -62,6 +62,7 @@ def main(args, outs):
                         continue
 
                     dupe_keys.add(dupe_key)
+                    read.is_duplicate = False
                     out_bam.write(read)
 
 

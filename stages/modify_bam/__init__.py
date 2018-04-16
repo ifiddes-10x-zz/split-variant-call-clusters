@@ -41,19 +41,9 @@ def main(args, outs):
                  '--TMP_DIR', os.getcwd()]
     subprocess.check_call(star_args)
 
-    tmp_bam2 = martian.make_path(str(args.cluster_id) + '.fixed.bam')
-    in_bam = tk_bam.create_bam_infile(tmp_bam)
-    out_bam, _ = tk_bam.create_bam_outfile(tmp_bam2, None, None, template=in_bam)
-    for rec in in_bam:
-        rec.is_duplicate = False
-        out_bam.write(rec)
-    out_bam.close()
-
-
     outs.modified_filtered_bam = martian.make_path('{}.bam'.format(args.cluster_id))
-    subprocess.check_call(['sambamba', 'sort', '-t', str(args.__threads), '-o', outs.sorted_bam, tmp_bam2])
+    subprocess.check_call(['sambamba', 'sort', '-t', str(args.__threads), '-o', outs.sorted_bam, tmp_bam])
     os.remove(tmp_bam)
-    os.remove(tmp_bam2)
 
 def join(args, outs, chunk_defs, chunk_outs):
     outs.coerce_strings()
