@@ -4,4 +4,5 @@ call VARIANT_CALL_CB_CLUSTERS(
     reference_path = "/mnt/home/stephen/yard/Ley_AML/scRNAseq/GRCh38-1.1.0",
     possorted_bam = "/mnt/deck1/stephen/WashU_AML/63866/example.short.bam",
     barcode_clusters  = "/mnt/analysis/marsocy/pipestances/H3LY3DSXX/SC_RNA_COUNTER_PD/63866/2.1.1-0/outs/analysis_csv/clustering/graphclust/clusters.csv",
+    target_regions = "/mnt/deck1/stephen/WashU_AML/63866/example.bed",
 )
