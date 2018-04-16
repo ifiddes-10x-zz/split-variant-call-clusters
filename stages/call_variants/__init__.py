@@ -25,7 +25,7 @@ stage CALL_VARIANTS(
 
 
 def split(args):
-    return {'chunks': [{'sorted_bam': bam, 'cluster_id': i, '__threads': 2, '__mem_gb': 2 * 6}
+    return {'chunks': [{'sorted_bam': bam, 'cluster_id': i, '__threads': 1, '__mem_gb': 8}
                        for i, bam in zip(args.clusters, args.sorted_bams)],
             'join': {'__mem_gb': 16}}
 
@@ -35,14 +35,10 @@ def main(args, outs):
     tmp = martian.make_path('{}.vcf'.format(args.cluster_id))
 
     # Run GATK4
-    gatk_args = ['gatk-launch', 'HaplotypeCaller',
-                 '-R', genome_fasta_path,
-                 '-I', args.sorted_bam,
-                 '-O', tmp,
-                 '-L', args.target_regions,
-                 '--native-pair-hmm-threads', str(args.__threads)]
+    gatk_args = ['freebayes', '-f', genome_fasta_path, args.sorted_bam]
 
-    subprocess.check_call(gatk_args)
+    with open(tmp, 'w') as outf:
+        subprocess.check_call(gatk_args, stdout=outf)
 
     # fix the header
     recs = [x for x in open(tmp)]
@@ -58,6 +54,7 @@ def main(args, outs):
     tk_tabix.index_vcf(outs.variant_subset.replace('.gz', ''))
     os.remove(tmp)
     os.remove(tmp + '.idx')
+
 
 def join(args, outs, chunk_defs, chunk_outs):
     # final merge to make one combined VCF
