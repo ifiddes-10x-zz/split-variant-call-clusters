@@ -2,13 +2,15 @@
 filetype csv;
 filetype bam;
 filetype vcf;
+filetype vcf.gz;
 filetype bed;
 
 pipeline VARIANT_CALL_CB_CLUSTERS(
     in bam possorted_bam,
     in csv barcode_clusters,
     in string reference_path,
-    out vcf variants,
+    out vcf.gz variants,
+    out bam[] merged_bams,
 )
 {
     call FILTER_BAM(
@@ -30,5 +32,6 @@ pipeline VARIANT_CALL_CB_CLUSTERS(
     )
     return (
         variants = CALL_VARIANTS.variants,
+        merged_bams = MERGE_BAMS.merged_bams,
     )
 }

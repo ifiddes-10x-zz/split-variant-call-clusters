@@ -20,53 +20,44 @@ stage CALL_VARIANTS(
 ) split using (
     in string locus,
     in bam merged_bam,
-    out vcf variant_subset,
+    out vcf.gz variant_subset,
 )
 '''
 
 
 def split(args):
     # hacky fix to get chrom sizes
-    ref_dict = cr_utils.get_reference_genome_fasta(args.reference_path).replace('.fa', '.dict')
-    assert os.path.exists(ref_dict)
-    lines = [x.split() for x in open(ref_dict)][1:]
-    seqs = [x[1].split(':')[1] for x in lines]
-    sizes = map(int, [x[2].split(':')[1] for x in lines])
+    fasta_index = cr_utils.get_reference_genome_fasta(args.reference_path) + '.fai'
+    assert os.path.exists(fasta_index)
 
-    # another hack because of the reference we are using
-    def is_primary(chrom):
-        chrom = chrom.replace('chr', '')
-        return chrom.isdigit() or chrom == 'Y' or chrom == 'X'
+    loci = []
+    chunk_size = 5 * 10 ** 7
+    for l in open(fasta_index):
+        l = l.split()
+        chrom = l[0]
+        chrom_length = int(l[1])
+        region_start = 0
+        while region_start < chrom_length:
+            start = region_start
+            end = region_start + chunk_size
+            if end > chrom_length:
+                end = chrom_length
+            loci.append('{}:{}-{}'.format(chrom, start, end))
+            region_start = end
 
-    loci = [[chrom, 0, size] for chrom, size in zip(seqs, sizes) if is_primary(chrom)]
     chunks = []
     for bam, cluster_id in zip(args.merged_bams, args.merged_clusters):
         for locus in loci:
-            chunks.append({'locus': locus, 'merged_bam': bam, 'cluster_id': cluster_id,
-                           '__mem_gb': 80, '__threads': 8})
+            chunks.append({'locus': locus, 'merged_bam': bam, 'cluster_id': cluster_id, '__mem_gb': 6})
     return {'chunks': chunks, 'join': {'__mem_gb': 16}}
 
 
 def main(args, outs):
     genome_fasta_path = cr_utils.get_reference_genome_fasta(args.reference_path)
 
-    bed_path = martian.make_path('region.bed')
-    with open(bed_path, 'w') as f:
-        f.write('\t'.join(map(str, args.locus)))
-
-    # Run GATK4
-    gatk_args = ['gatk-launch', 'HaplotypeCaller',
-                 '-R', genome_fasta_path,
-                 '-I', args.merged_bam,
-                 '-O', outs.variant_subset,
-                 '-L', bed_path,
-                 '--minimum-mapping-quality', '30',
-                 '--min-base-quality-score', '20',
-                 '--dont-use-soft-clipped-bases', 'true',
-                 '--add-output-vcf-command-line', 'false',
-                 '--native-pair-hmm-threads', str(args.__threads)]
-
-    subprocess.check_call(gatk_args)
+    with open(outs.variant_subset, 'w') as outf:
+        subprocess.check_call(['freebayes', '-f', genome_fasta_path, '-r', args.locus, args.merged_bam],
+                              stdout=outf)
 
     # fix the header
     recs = [x for x in open(outs.variant_subset)]
@@ -97,7 +88,6 @@ def join(args, outs, chunk_defs, chunk_outs):
     with open(tmp, 'w') as outf:
         subprocess.check_call(cmd, stdout=outf)
     # Sort and index the files
-    outs.variants = 'variants.vcf.gz'
-    tk_tabix.sort_vcf(tmp, outs.variants)
-    tk_tabix.index_vcf(outs.variants)
+    tk_tabix.sort_vcf(tmp, outs.variants.replace('.gz', ''))
+    tk_tabix.index_vcf(outs.variants.replace('.gz', ''))
     os.remove(tmp)

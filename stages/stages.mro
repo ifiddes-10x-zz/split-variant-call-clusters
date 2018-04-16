@@ -1,6 +1,7 @@
 filetype bam;
 filetype csv;
 filetype vcf;
+filetype vcf.gz;
 
 stage FILTER_BAM(
     in bam possorted_bam,
@@ -42,7 +43,7 @@ stage CALL_VARIANTS(
     in bam[] merged_bams,
     in int[] merged_clusters,
     in path reference_path,
-    out vcf variants,
+    out vcf.gz variants,
     src py "call_variants",
 ) split using (
     in string locus,
