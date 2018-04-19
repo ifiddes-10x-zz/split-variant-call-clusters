@@ -10,7 +10,7 @@ stage FILTER_BAM(
     in bed target_regions,
     out bam[] filtered_bams,
     out int[] clusters,
-    src py "filter_bam",
+    src py "stages/filter_bam",
 ) split using(
     in string[] barcodes,
     out bam filtered_bam,
@@ -21,7 +21,7 @@ stage MODIFY_BAM(
     in path reference_path,
     in int[] clusters,
     out bam[] sorted_bams,
-    src py "modify_bam",
+    src py "stages/modify_bam",
 ) split using(
     in bam filtered_bam,
     in int cluster_id,
@@ -34,7 +34,7 @@ stage CALL_VARIANTS(
     in path reference_path,
     in bed target_regions,
     out vcf.gz variants,
-    src py "call_variants",
+    src py "stages/call_variants",
 ) split using (
     in bam sorted_bam,
     in int cluster_id,
