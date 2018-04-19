@@ -8,7 +8,7 @@ stage FILTER_BAM(
     in csv barcode_clusters,
     out bam[] filtered_bams,
     out int[] clusters,
-    src py "filter_bam",
+    src py "stages/filter_bam",
 ) split(
     in string chunk_start,
     in string chunk_end,
@@ -22,7 +22,7 @@ stage MODIFY_BAM(
     in bam[] filtered_bams,
     in path reference_path,
     out bam[] modified_filtered_bams,
-    src py "modify_bam",
+    src py "stages/modify_bam",
 ) split using(
     in bam filtered_bam,
     out bam modified_filtered_bam,
@@ -33,7 +33,7 @@ stage MERGE_BAMS(
     in int[] clusters,
     out bam[] merged_bams,
     out int[] merged_clusters,
-    src py "merge_bams",
+    src py "stages/merge_bams",
 ) split using(
     in bam filtered_bam,
     out bam merged_bam,
@@ -44,7 +44,7 @@ stage CALL_VARIANTS(
     in int[] merged_clusters,
     in path reference_path,
     out vcf.gz variants,
-    src py "call_variants",
+    src py "stages/call_variants",
 ) split using (
     in string locus,
     in bam merged_bam,
