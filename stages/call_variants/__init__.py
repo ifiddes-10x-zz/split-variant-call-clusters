@@ -5,6 +5,7 @@
 import os
 import martian
 import subprocess
+import pysam
 import tenkit.tabix as tk_tabix
 import cellranger.utils as cr_utils
 
@@ -34,11 +35,18 @@ def main(args, outs):
     genome_fasta_path = cr_utils.get_reference_genome_fasta(args.reference_path)
     tmp = martian.make_path('{}.vcf'.format(args.cluster_id))
 
-    # Run GATK4
-    gatk_args = ['freebayes', '-f', genome_fasta_path, args.sorted_bam]
+    #with open(outs.variant_subset, 'w') as outf:
+        #subprocess.check_call(['freebayes', '-f', genome_fasta_path, '-r', args.locus, args.merged_bam],
+        #                      stdout=outf)
 
-    with open(tmp, 'w') as outf:
-        subprocess.check_call(gatk_args, stdout=outf)
+    # get the sample. Making the assumption that this is a single-sample BAM
+    s = pysam.Samfile(args.merged_bam)
+    sample = s.header['RG'][0]['SM']
+
+    subprocess.check_call(['gatk-launch', 'Mutect2', '-R', genome_fasta_path, '--intervals',
+                           args.locus, '-I', args.merged_bam, '-tumor', sample,
+                           '-O', outs.variant_subset, '--TMP_DIR', os.getcwd(),
+                           '--native-pair-hmm-threads', str(args.__threads)])
 
     # fix the header
     recs = [x for x in open(tmp)]
