@@ -17,7 +17,7 @@ stage CALL_VARIANTS(
     in int[] merged_clusters,
     in path reference_path,
     out vcf variants,
-    src py "call_variants",
+    src py "stages/call_variants",
 ) split using (
     in string locus,
     in bam merged_bam,

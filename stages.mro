@@ -9,9 +9,8 @@ stage FILTER_BAM(
     out bam[] filtered_bams,
     out int[] clusters,
     src py "stages/filter_bam",
-) split(
-    in string chunk_start,
-    in string chunk_end,
+) split (
+    in string locus,
     in string[] barcodes,
     out bam filtered_bam,
 ) using (

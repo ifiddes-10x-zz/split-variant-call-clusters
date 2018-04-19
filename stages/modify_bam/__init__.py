@@ -11,7 +11,7 @@ stage MODIFY_BAM(
     in bam[] filtered_bams,
     in path reference_path,
     out bam[] modified_filtered_bams,
-    src py "modify_bam",
+    src py "stages/modify_bam",
 ) split using(
     in bam filtered_bam,
     out bam modified_filtered_bam,

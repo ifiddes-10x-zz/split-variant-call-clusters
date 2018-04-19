@@ -14,7 +14,7 @@ stage MERGE_BAMS(
     in int[] clusters,
     out bam[] merged_bams,
     out int[] merged_clusters,
-    src py "merge_bams",
+    src py "stages/merge_bams",
 ) split using(
     in bam filtered_bam,
     out bam merged_bam,
